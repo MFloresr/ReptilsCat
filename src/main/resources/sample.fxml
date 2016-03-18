@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<GridPane alignment="center" hgap="10" vgap="10" xmlns="http://javafx.com/javafx/null" xmlns:fx="http://javafx.com/fxml/1" fx:controller="mario.Controller">
+    <columnConstraints>
+        <ColumnConstraints />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints />
+    </rowConstraints>
+    <children>
+        <Pane prefHeight="378.0" prefWidth="612.0">
+         <children>
+            <Button fx:id="btnguardarcambios" layoutX="87.0" layoutY="313.0" mnemonicParsing="false" onMouseClicked="#guardarCambios" prefHeight="25.0" prefWidth="263.0" text="Desar els canvis" />
+            <Button fx:id="btnanterior" layoutX="395.0" layoutY="313.0" mnemonicParsing="false" onMouseClicked="#buscarAnterior" text="Anterior" />
+            <Button fx:id="btnsiguiente" layoutX="506.0" layoutY="313.0" mnemonicParsing="false" onMouseClicked="#buscarSiguiente" text="Següent" />
+            <ChoiceBox fx:id="choisefamilia" layoutX="357.0" layoutY="25.0" prefHeight="25.0" prefWidth="209.0" />
+            <ComboBox fx:id="comboordre" layoutX="357.0" layoutY="72.0" prefHeight="25.0" prefWidth="209.0" />
+            <ComboBox fx:id="comboestat" layoutX="137.0" layoutY="259.0" prefHeight="25.0" prefWidth="192.0" />
+            <ImageView fx:id="imagen" fitHeight="126.0" fitWidth="159.0" layoutX="43.0" layoutY="18.0" opacity="0.43" pickOnBounds="true" preserveRatio="true" />
+            <Label layoutX="278.0" layoutY="29.0" text="Familia:" />
+            <Label layoutX="281.0" layoutY="76.0" text="Ordre:" />
+            <Label layoutX="380.0" layoutY="122.0" text="Descripció:" />
+            <Label layoutX="43.0" layoutY="161.0" text="Nom:" />
+            <Label layoutX="43.0" layoutY="214.0" text="Espècie:" />
+            <Label layoutX="43.0" layoutY="263.0" text="Estat:" />
+            <TextField fx:id="textnom" layoutX="137.0" layoutY="157.0" prefHeight="25.0" prefWidth="192.0" />
+            <TextField fx:id="textespecie" layoutX="137.0" layoutY="210.0" prefHeight="25.0" prefWidth="192.0" />
+            <TextArea fx:id="textdescripcio" layoutX="380.0" layoutY="142.0" prefHeight="160.0" prefWidth="200.0" />
+         </children></Pane>
+    </children>
+</GridPane>

@@ -2,6 +2,8 @@ package mario;
 
 
 import com.mysql.jdbc.Connection;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -11,6 +13,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 
 public class Controller {
@@ -37,6 +40,8 @@ public class Controller {
 
     private java.sql.Connection con = null;
     private ResultSet resultat;
+    private ObservableList<String> itemsOrdre = FXCollections.observableArrayList ();
+    private ArrayList<Animal> animales = new ArrayList<Animal>();
 
     @FXML
     public void initialize() {
@@ -46,6 +51,8 @@ public class Controller {
             con = DriverManager.getConnection("jdbc:mysql://localhost:3306/cendrassos", "mario", "qcmmer2sa!");
             PreparedStatement peticionfamilia = con.prepareStatement("SELECT * FROM families");
             resultat = peticionfamilia.executeQuery();
+            //int familia = resultat.getInt("codi");
+            //System.out.println(familia);
             while(resultat.next()){
                 System.out.println(resultat.getInt("codi")+"_"+ resultat.getString("nom"));
                 cargarChoise(resultat);
@@ -55,8 +62,27 @@ public class Controller {
             resultat = peticionordre.executeQuery();
             while(resultat.next()){
                 System.out.println(resultat.getInt("familia")+"_"+ resultat.getString("nom"));
+                itemsOrdre.add(resultat.getString("nom"));
+            }
+            comboordre.setItems(itemsOrdre);
+            comboordre.getSelectionModel().select(0);
+            /*for (int i =0;i<itemsOrdre.size();i++){
+                System.out.println(itemsOrdre.get(i));
+            }*/
+
+
+            PreparedStatement peticionanimals = con.prepareStatement("SELECT * FROM animals WHERE ordre=?");
+            peticionanimals.setInt(1,1);
+            resultat = peticionanimals.executeQuery();
+            while(resultat.next()){
+                Animal animal = new Animal(resultat.getInt("codi"),resultat.getString("nom"),resultat.getInt("ordre"),resultat.getString("especie"),resultat.getString("descripcio"),resultat.getString("estat"),resultat.getString("imatge"));
+                animales.add(animal);
+                //itemsOrdre.add(resultat.getString("nom"));
             }
 
+            for (int i =0;i<animales.size();i++){
+                System.out.println(animales.get(i));
+            }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (SQLException e) {

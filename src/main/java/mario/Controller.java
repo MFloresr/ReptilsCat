@@ -1,7 +1,6 @@
 package mario;
 
 
-import com.mysql.jdbc.Connection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -10,7 +9,6 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-import java.net.URL;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -43,67 +41,124 @@ public class Controller {
     private java.sql.Connection con = null;
     private ResultSet resultat;
     private ObservableList<String> itemsOrdre = FXCollections.observableArrayList ();
+    private ObservableList<String> itemsEstat = FXCollections.observableArrayList ();
     private ArrayList<Animal> animales = new ArrayList<Animal>();
+    private int numposicio=0;
 
     @FXML
     public void initialize() {
         try {
-
-            Class.forName("com.mysql.jdbc.Driver");
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/cendrassos", "mario", "qcmmer2sa!");
-            PreparedStatement peticionfamilia = con.prepareStatement("SELECT * FROM families");
-            resultat = peticionfamilia.executeQuery();
-            //int familia = resultat.getInt("codi");
-            //System.out.println(familia);
-            while(resultat.next()){
-                System.out.println(resultat.getInt("codi")+"_"+ resultat.getString("nom"));
-                cargarChoise(resultat);
-            }
-            PreparedStatement peticionordre = con.prepareStatement("SELECT * FROM ordres WHERE familia=?");
-            peticionordre.setInt(1,1);
-            resultat = peticionordre.executeQuery();
-            while(resultat.next()){
-                System.out.println(resultat.getInt("familia")+"_"+ resultat.getString("nom"));
-                itemsOrdre.add(resultat.getString("nom"));
-            }
-            comboordre.setItems(itemsOrdre);
-            comboordre.getSelectionModel().select(0);
-            /*for (int i =0;i<itemsOrdre.size();i++){
-                System.out.println(itemsOrdre.get(i));
-            }*/
-
-
-            PreparedStatement peticionanimals = con.prepareStatement("SELECT * FROM animals WHERE ordre=?");
-            peticionanimals.setInt(1,1);
-            resultat = peticionanimals.executeQuery();
-            while(resultat.next()){
-                Animal animal = new Animal(resultat.getInt("codi"),resultat.getString("nom"),resultat.getInt("ordre"),resultat.getString("especie"),resultat.getString("descripcio"),resultat.getString("estat"),resultat.getString("imatge"));
-                animales.add(animal);
-                //itemsOrdre.add(resultat.getString("nom"));
-            }
-            textnom.setText(animales.get(0).getNom());
-            textdescripcio.setText(animales.get(0).getDescripcio());
-            textdescripcio.setWrapText(true);
-            textespecie.setText(animales.get(0).getEspecie());
-            String url = animales.get(0).getImatge();
-            System.out.println(url);
-            Image image= new Image("http://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Salamandra_salamandra_MHNT_1.jpg/130px-Salamandra_salamandra_MHNT_1.jpg");
-            imagen.setImage(image);
-
-            for (int i =0;i<animales.size();i++){
-                System.out.println(animales.get(i));
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            abrirConexion();
+            familias();
+            ordre();
+            ordreAnimals();
+            datosAnimales();
+            estadoAnimal();
+            cerrarConexion();
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                con.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
+    }
+
+    private void abrirConexion(){
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        try {
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/cendrassos", "mario", "qcmmer2sa!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void cerrarConexion(){
+        try {
+            con.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void familias() throws SQLException {
+        PreparedStatement peticionfamilia = null;
+        try {
+            peticionfamilia = con.prepareStatement("SELECT * FROM families");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        resultat = peticionfamilia.executeQuery();
+        while(resultat.next()){
+            System.out.println(resultat.getInt("codi")+"_"+ resultat.getString("nom"));
+            cargarChoise(resultat);
+        }
+    }
+
+    private void ordre() throws SQLException {
+        PreparedStatement peticionordre = null;
+        try {
+            peticionordre = con.prepareStatement("SELECT * FROM ordres WHERE familia=?");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        peticionordre.setInt(1,1);
+        resultat = peticionordre.executeQuery();
+        while(resultat.next()){
+            System.out.println(resultat.getInt("familia")+"_"+ resultat.getString("nom"));
+            itemsOrdre.add(resultat.getString("nom"));
+        }
+        comboordre.setItems(itemsOrdre);
+        comboordre.getSelectionModel().select(0);
+    }
+
+    private void ordreAnimals() throws SQLException {
+        PreparedStatement peticionanimals = null;
+        try {
+            peticionanimals = con.prepareStatement("SELECT * FROM animals WHERE ordre=?");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        peticionanimals.setInt(1,1);
+        resultat = peticionanimals.executeQuery();
+        while(resultat.next()){
+            Animal animal = new Animal(resultat.getInt("codi"),resultat.getString("nom"),resultat.getInt("ordre"),resultat.getString("especie"),resultat.getString("descripcio"),resultat.getString("estat"),resultat.getString("imatge"));
+            animales.add(animal);
+        }
+    }
+
+    private void estadoAnimal() throws SQLException {
+        PreparedStatement peticionestat = null;
+        try {
+            peticionestat = con.prepareStatement("SELECT DISTINCT estat FROM animals");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        resultat = peticionestat.executeQuery();
+        while(resultat.next()){
+            itemsEstat.add(resultat.getString("estat"));
+        }
+        comboestat.setItems(itemsEstat);
+        comboestat.getSelectionModel().select(0);
+    }
+
+    private void datosAnimales(){
+        textnom.setText(animales.get(numposicio).getNom());
+        textdescripcio.setText(animales.get(numposicio).getDescripcio());
+        textdescripcio.setWrapText(true);
+        textespecie.setText(animales.get(numposicio).getEspecie());
+        String url1 = animales.get(numposicio).getImatge();
+        String url = correctorUrl(url1);
+        Image image= new Image(url);
+        System.out.println(url);
+        imagen.setImage(image);
+    }
+
+    private String correctorUrl(String url){
+        String uri1 = url.substring(0,8);
+        String uri2 = url.substring(10);
+        String urlfinal = uri1+uri2;
+        return urlfinal;
     }
 
     public void cargarChoise(ResultSet resultat){
@@ -117,17 +172,31 @@ public class Controller {
 
     @FXML
     public void guardarCambios(Event event){
-
     }
 
     @FXML
     public void buscarAnterior(Event event){
-
+        textnom.setText(animales.get(numposicio).getNom());
+        textdescripcio.setText(animales.get(numposicio).getDescripcio());
+        textdescripcio.setWrapText(true);
+        textespecie.setText(animales.get(numposicio).getEspecie());
+        String url1 = animales.get(numposicio).getImatge();
+        String url = correctorUrl(url1);
+        Image image= new Image(url);
+        System.out.println(url);
+        imagen.setImage(image);
     }
 
     @FXML
     public void buscarSiguiente(Event event){
-
+        textnom.setText(animales.get(numposicio+1).getNom());
+        textdescripcio.setText(animales.get(numposicio+1).getDescripcio());
+        textdescripcio.setWrapText(true);
+        textespecie.setText(animales.get(numposicio+1).getEspecie());
+        String url1 = animales.get(numposicio+1).getImatge();
+        String url = correctorUrl(url1);
+        Image image= new Image(url);
+        System.out.println(url);
+        imagen.setImage(image);
     }
-
 }

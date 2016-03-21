@@ -7,8 +7,10 @@ import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
+import java.net.URL;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -79,6 +81,14 @@ public class Controller {
                 animales.add(animal);
                 //itemsOrdre.add(resultat.getString("nom"));
             }
+            textnom.setText(animales.get(0).getNom());
+            textdescripcio.setText(animales.get(0).getDescripcio());
+            textdescripcio.setWrapText(true);
+            textespecie.setText(animales.get(0).getEspecie());
+            String url = animales.get(0).getImatge();
+            System.out.println(url);
+            Image image= new Image("http://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Salamandra_salamandra_MHNT_1.jpg/130px-Salamandra_salamandra_MHNT_1.jpg");
+            imagen.setImage(image);
 
             for (int i =0;i<animales.size();i++){
                 System.out.println(animales.get(i));

@@ -54,6 +54,7 @@ public class Controller {
             ordreAnimals();
             datosAnimales();
             estadoAnimal();
+            btnanterior.setDisable(true);
             cerrarConexion();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -161,7 +162,7 @@ public class Controller {
         return urlfinal;
     }
 
-    public void cargarChoise(ResultSet resultat){
+    private void cargarChoise(ResultSet resultat){
         try {
             choisefamilia.getItems().add(resultat.getString("nom"));
         } catch (SQLException e) {
@@ -176,28 +177,40 @@ public class Controller {
 
     @FXML
     public void buscarAnterior(Event event){
-        textnom.setText(animales.get(numposicio).getNom());
-        textdescripcio.setText(animales.get(numposicio).getDescripcio());
-        textdescripcio.setWrapText(true);
-        textespecie.setText(animales.get(numposicio).getEspecie());
-        String url1 = animales.get(numposicio).getImatge();
-        String url = correctorUrl(url1);
-        Image image= new Image(url);
-        System.out.println(url);
-        imagen.setImage(image);
+        numposicio= numposicio-(1);
+        if(numposicio<0){
+            btnanterior.setDisable(true);
+        }else{
+            btnsiguiente.setDisable(false);
+            textnom.setText(animales.get(numposicio).getNom());
+            textdescripcio.setText(animales.get(numposicio).getDescripcio());
+            textdescripcio.setWrapText(true);
+            textespecie.setText(animales.get(numposicio).getEspecie());
+            String url1 = animales.get(numposicio).getImatge();
+            String url = correctorUrl(url1);
+            Image image= new Image(url);
+            System.out.println(url);
+            imagen.setImage(image);
+        }
     }
 
     @FXML
     public void buscarSiguiente(Event event){
-        textnom.setText(animales.get(numposicio+1).getNom());
-        textdescripcio.setText(animales.get(numposicio+1).getDescripcio());
-        textdescripcio.setWrapText(true);
-        textespecie.setText(animales.get(numposicio+1).getEspecie());
-        String url1 = animales.get(numposicio+1).getImatge();
-        String url = correctorUrl(url1);
-        Image image= new Image(url);
-        System.out.println(url);
-        imagen.setImage(image);
+        numposicio= numposicio+1;
+        if(numposicio==animales.size()-(1)){
+            btnsiguiente.setDisable(true);
+        }else{
+            btnanterior.setDisable(false);
+            textnom.setText(animales.get(numposicio).getNom());
+            textdescripcio.setText(animales.get(numposicio).getDescripcio());
+            textdescripcio.setWrapText(true);
+            textespecie.setText(animales.get(numposicio).getEspecie());
+            String url1 = animales.get(numposicio).getImatge();
+            String url = correctorUrl(url1);
+            Image image= new Image(url);
+            System.out.println(url);
+            imagen.setImage(image);
+        }
     }
 //rebase
 }

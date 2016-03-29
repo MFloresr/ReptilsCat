@@ -1,10 +1,8 @@
 package mario;
 
-
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -12,7 +10,6 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -57,16 +54,11 @@ public class Controller {
             familias();
             ordre();
             ordreAnimals();
-            datosAnimales();
             estadoAnimal();
             btnanterior.setDisable(true);
             comboordre.valueProperty().addListener(new ChangeListener() {
                 @Override
                 public void changed(ObservableValue observable, Object oldValue, Object newValue) {
-                    System.out.println(observable);
-                    System.out.println(oldValue);
-                    System.out.println(newValue);
-                    System.out.println(comboordre.getSelectionModel().getSelectedIndex()+1);
                     try {
                         ordreAnimals();
                     } catch (SQLException e) {
@@ -77,14 +69,10 @@ public class Controller {
             choisefamilia.valueProperty().addListener(new ChangeListener() {
                 @Override
                 public void changed(ObservableValue observable, Object oldValue, Object newValue) {
-                    System.out.println(observable);
-                    System.out.println(oldValue);
-                    System.out.println(newValue);
                     try {
+                        animales.clear();
                         ordre();
-                        ordreAnimals();
-                        datosAnimales();
-                        estadoAnimal();
+                        //ordreAnimals();
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
@@ -100,12 +88,10 @@ public class Controller {
     private void abrirConexion(){
         try {
             Class.forName("com.mysql.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        try {
             con = DriverManager.getConnection("jdbc:mysql://localhost:3306/cendrassos", "mario", "qcmmer2sa!");
-        } catch (SQLException e) {
+        }catch (SQLException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -126,9 +112,9 @@ public class Controller {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         resultat = peticionfamilia.executeQuery();
         while(resultat.next()){
-            System.out.println(resultat.getInt("codi")+"_"+ resultat.getString("nom"));
             cargarChoise(resultat);
         }
         cerrarConexion();
@@ -137,12 +123,10 @@ public class Controller {
     private void ordre() throws SQLException {
         abrirConexion();
         PreparedStatement peticionordre = null;
-
         if(catanimales==0){
             catanimales=1;
         }else{
             catanimales= choisefamilia.getSelectionModel().getSelectedIndex()+1;
-            itemsOrdre.clear();
         }
 
         try {
@@ -152,8 +136,11 @@ public class Controller {
         }
         peticionordre.setInt(1,catanimales);
         resultat = peticionordre.executeQuery();
+        if(!itemsOrdre.isEmpty()){
+           itemsOrdre.clear();
+        }
+        //itemsOrdre.clear();
         while(resultat.next()){
-            System.out.println(resultat.getInt("familia")+"_"+ resultat.getString("nom"));
             itemsOrdre.add(resultat.getString("nom"));
         }
         comboordre.setItems(itemsOrdre);
@@ -169,8 +156,6 @@ public class Controller {
             ordresanimales=1;
         }else{
             ordresanimales= comboordre.getSelectionModel().getSelectedIndex()+1;
-            animales.clear();
-            System.out.println(ordresanimales);
         }
         try {
             peticionanimals = con.prepareStatement("SELECT * FROM animals WHERE ordre=?");
@@ -213,7 +198,6 @@ public class Controller {
         String url1 = animales.get(numposicio).getImatge();
         String url = correctorUrl(url1);
         Image image= new Image(url);
-        System.out.println(url);
         imagen.setImage(image);
 
         String estadoAnimal = animales.get(numposicio).getEstat();
@@ -258,7 +242,6 @@ public class Controller {
             String url1 = animales.get(numposicio).getImatge();
             String url = correctorUrl(url1);
             Image image= new Image(url);
-            System.out.println(url);
             imagen.setImage(image);
 
             String estadoAnimal = animales.get(numposicio).getEstat();
@@ -284,7 +267,6 @@ public class Controller {
             String url1 = animales.get(numposicio).getImatge();
             String url = correctorUrl(url1);
             Image image= new Image(url);
-            System.out.println(url);
             imagen.setImage(image);
 
             String estadoAnimal = animales.get(numposicio).getEstat();

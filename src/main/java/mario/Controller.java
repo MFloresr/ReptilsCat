@@ -1,7 +1,10 @@
 package mario;
 
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -9,6 +12,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
+import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -44,18 +48,50 @@ public class Controller {
     private ObservableList<String> itemsEstat = FXCollections.observableArrayList ();
     private ArrayList<Animal> animales = new ArrayList<Animal>();
     private int numposicio=0;
+    private int ordresanimales=0;
+    private int catanimales = 0;
 
     @FXML
     public void initialize() {
         try {
-            abrirConexion();
             familias();
             ordre();
             ordreAnimals();
             datosAnimales();
             estadoAnimal();
             btnanterior.setDisable(true);
-            cerrarConexion();
+            comboordre.valueProperty().addListener(new ChangeListener() {
+                @Override
+                public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                    System.out.println(observable);
+                    System.out.println(oldValue);
+                    System.out.println(newValue);
+                    System.out.println(comboordre.getSelectionModel().getSelectedIndex()+1);
+                    try {
+                        ordreAnimals();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            choisefamilia.valueProperty().addListener(new ChangeListener() {
+                @Override
+                public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                    System.out.println(observable);
+                    System.out.println(oldValue);
+                    System.out.println(newValue);
+                    try {
+                        ordre();
+                        ordreAnimals();
+                        datosAnimales();
+                        estadoAnimal();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -83,6 +119,7 @@ public class Controller {
     }
 
     private void familias() throws SQLException {
+        abrirConexion();
         PreparedStatement peticionfamilia = null;
         try {
             peticionfamilia = con.prepareStatement("SELECT * FROM families");
@@ -94,16 +131,26 @@ public class Controller {
             System.out.println(resultat.getInt("codi")+"_"+ resultat.getString("nom"));
             cargarChoise(resultat);
         }
+        cerrarConexion();
     }
 
     private void ordre() throws SQLException {
+        abrirConexion();
         PreparedStatement peticionordre = null;
+
+        if(catanimales==0){
+            catanimales=1;
+        }else{
+            catanimales= choisefamilia.getSelectionModel().getSelectedIndex()+1;
+            itemsOrdre.clear();
+        }
+
         try {
             peticionordre = con.prepareStatement("SELECT * FROM ordres WHERE familia=?");
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        peticionordre.setInt(1,1);
+        peticionordre.setInt(1,catanimales);
         resultat = peticionordre.executeQuery();
         while(resultat.next()){
             System.out.println(resultat.getInt("familia")+"_"+ resultat.getString("nom"));
@@ -111,24 +158,38 @@ public class Controller {
         }
         comboordre.setItems(itemsOrdre);
         comboordre.getSelectionModel().select(0);
+        cerrarConexion();
     }
 
     private void ordreAnimals() throws SQLException {
+        abrirConexion();
         PreparedStatement peticionanimals = null;
+
+        if(ordresanimales==0){
+            ordresanimales=1;
+        }else{
+            ordresanimales= comboordre.getSelectionModel().getSelectedIndex()+1;
+            animales.clear();
+            System.out.println(ordresanimales);
+        }
         try {
             peticionanimals = con.prepareStatement("SELECT * FROM animals WHERE ordre=?");
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        peticionanimals.setInt(1,1);
+        peticionanimals.setInt(1,ordresanimales);
         resultat = peticionanimals.executeQuery();
         while(resultat.next()){
             Animal animal = new Animal(resultat.getInt("codi"),resultat.getString("nom"),resultat.getInt("ordre"),resultat.getString("especie"),resultat.getString("descripcio"),resultat.getString("estat"),resultat.getString("imatge"));
             animales.add(animal);
         }
+        numposicio=0;
+        datosAnimales();
+        cerrarConexion();
     }
 
     private void estadoAnimal() throws SQLException {
+        abrirConexion();
         PreparedStatement peticionestat = null;
         try {
             peticionestat = con.prepareStatement("SELECT DISTINCT estat FROM animals");
@@ -141,6 +202,7 @@ public class Controller {
         }
         comboestat.setItems(itemsEstat);
         comboestat.getSelectionModel().select(0);
+        cerrarConexion();
     }
 
     private void datosAnimales(){
@@ -153,6 +215,13 @@ public class Controller {
         Image image= new Image(url);
         System.out.println(url);
         imagen.setImage(image);
+
+        String estadoAnimal = animales.get(numposicio).getEstat();
+        for(int i = 0;i<comboestat.getItems().size();i++){
+            if(comboestat.getItems().get(i).equals(estadoAnimal)){
+                comboestat.getSelectionModel().select(i);
+            }
+        }
     }
 
     private String correctorUrl(String url){
@@ -178,7 +247,7 @@ public class Controller {
     @FXML
     public void buscarAnterior(Event event){
         numposicio= numposicio-(1);
-        if(numposicio<0){
+        if(numposicio<=0){
             btnanterior.setDisable(true);
         }else{
             btnsiguiente.setDisable(false);
@@ -191,13 +260,20 @@ public class Controller {
             Image image= new Image(url);
             System.out.println(url);
             imagen.setImage(image);
+
+            String estadoAnimal = animales.get(numposicio).getEstat();
+            for(int i = 0;i<comboestat.getItems().size();i++){
+                if(comboestat.getItems().get(i).equals(estadoAnimal)){
+                    comboestat.getSelectionModel().select(i);
+                }
+            }
         }
     }
 
     @FXML
     public void buscarSiguiente(Event event){
         numposicio= numposicio+1;
-        if(numposicio==animales.size()-(1)){
+        if(numposicio==(animales.size()-1)){
             btnsiguiente.setDisable(true);
         }else{
             btnanterior.setDisable(false);
@@ -210,7 +286,13 @@ public class Controller {
             Image image= new Image(url);
             System.out.println(url);
             imagen.setImage(image);
+
+            String estadoAnimal = animales.get(numposicio).getEstat();
+            for(int i = 0;i<comboestat.getItems().size();i++){
+                if(comboestat.getItems().get(i).equals(estadoAnimal)){
+                    comboestat.getSelectionModel().select(i);
+                }
+            }
         }
     }
-//rebase
 }

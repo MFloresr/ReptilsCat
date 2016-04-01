@@ -35,9 +35,9 @@
             <Label layoutX="43.0" layoutY="161.0" text="Nom:" />
             <Label layoutX="43.0" layoutY="214.0" text="Espècie:" />
             <Label layoutX="43.0" layoutY="263.0" text="Estat:" />
-            <TextField fx:id="textnom" layoutX="137.0" layoutY="157.0" prefHeight="25.0" prefWidth="192.0" />
-            <TextField fx:id="textespecie" layoutX="137.0" layoutY="210.0" prefHeight="25.0" prefWidth="192.0" />
-            <TextArea fx:id="textdescripcio" layoutX="380.0" layoutY="142.0" prefHeight="160.0" prefWidth="200.0" />
+            <TextField fx:id="textnom" layoutX="137.0" layoutY="157.0" onKeyPressed="#cambios" prefHeight="25.0" prefWidth="192.0" />
+            <TextField fx:id="textespecie" layoutX="137.0" layoutY="210.0" onKeyPressed="#cambios" prefHeight="25.0" prefWidth="192.0" />
+            <TextArea fx:id="textdescripcio" layoutX="380.0" layoutY="142.0" onKeyPressed="#cambios" prefHeight="160.0" prefWidth="200.0" />
          </children></Pane>
     </children>
 </GridPane>

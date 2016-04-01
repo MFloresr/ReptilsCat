@@ -4,7 +4,9 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -44,38 +46,55 @@ public class Controller {
     private ObservableList<String> itemsOrdre = FXCollections.observableArrayList ();
     private ObservableList<String> itemsEstat = FXCollections.observableArrayList ();
     private ArrayList<Animal> animales = new ArrayList<Animal>();
+    private ArrayList<Ordre> ordres = new ArrayList<Ordre>();
+    private ArrayList<String> estats = new ArrayList<String>();
+    private Animal animal = new Animal();
     private int numposicio=0;
-    private int ordresanimales=0;
+    private String nombreAnimal;
     private int catanimales = 0;
-
+    private int orden = 0;
     @FXML
     public void initialize() {
         try {
-            familias();
-            ordre();
-            ordreAnimals();
+            buscarFamilias();
+            buscarOrdre();
+            animalsDeCadaOrdre();
             estadoAnimal();
-            btnanterior.setDisable(true);
-            comboordre.valueProperty().addListener(new ChangeListener() {
+            cambiarEstadoBoton();
+            datosAnimales();
+            btnguardarcambios.setDisable(true);
+
+            choisefamilia.valueProperty().addListener(new ChangeListener() {
                 @Override
                 public void changed(ObservableValue observable, Object oldValue, Object newValue) {
                     try {
-                        ordreAnimals();
+                        buscarOrdre();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            });
+
+            comboordre.valueProperty().addListener(new ChangeListener() {
+                @Override
+                public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+
+                    try {
+                        System.out.println("ordre: "+ comboordre.getSelectionModel().getSelectedIndex());
+                        animalsDeCadaOrdre();
+                        datosAnimales();
+                        cambiarEstadoBoton();
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
                 }
             });
-            choisefamilia.valueProperty().addListener(new ChangeListener() {
+
+            comboestat.valueProperty().addListener(new ChangeListener() {
                 @Override
                 public void changed(ObservableValue observable, Object oldValue, Object newValue) {
-                    try {
-                        animales.clear();
-                        ordre();
-                        //ordreAnimals();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
+                    btnguardarcambios.setDisable(false);
                 }
             });
 
@@ -104,7 +123,7 @@ public class Controller {
         }
     }
 
-    private void familias() throws SQLException {
+    private void buscarFamilias() throws SQLException {
         abrirConexion();
         PreparedStatement peticionfamilia = null;
         try {
@@ -116,60 +135,66 @@ public class Controller {
         resultat = peticionfamilia.executeQuery();
         while(resultat.next()){
             cargarChoise(resultat);
+            //System.out.println(resultat.getString("nom"));
         }
         cerrarConexion();
     }
 
-    private void ordre() throws SQLException {
+    private void cargarChoise(ResultSet resultat) throws SQLException {
+        choisefamilia.getItems().add(resultat.getString("nom"));
+        choisefamilia.getSelectionModel().select(0);
+    }
+
+    private void buscarOrdre() throws SQLException {
         abrirConexion();
         PreparedStatement peticionordre = null;
-        if(catanimales==0){
-            catanimales=1;
-        }else{
-            catanimales= choisefamilia.getSelectionModel().getSelectedIndex()+1;
-        }
-
+        catanimales= choisefamilia.getSelectionModel().getSelectedIndex()+1;
+        System.out.println( "familia que tendria que salir"+catanimales);
         try {
             peticionordre = con.prepareStatement("SELECT * FROM ordres WHERE familia=?");
         } catch (SQLException e) {
             e.printStackTrace();
         }
         peticionordre.setInt(1,catanimales);
+        itemsOrdre.clear();
+        ordres.clear();
         resultat = peticionordre.executeQuery();
-        if(!itemsOrdre.isEmpty()){
-           itemsOrdre.clear();
-        }
-        //itemsOrdre.clear();
+
         while(resultat.next()){
             itemsOrdre.add(resultat.getString("nom"));
+            Ordre ordre = new Ordre(resultat.getInt("codi"),resultat.getString("nom"));
+            ordres.add(ordre);
+            orden = resultat.getInt("codi");
         }
         comboordre.setItems(itemsOrdre);
         comboordre.getSelectionModel().select(0);
         cerrarConexion();
     }
 
-    private void ordreAnimals() throws SQLException {
+    private void animalsDeCadaOrdre() throws SQLException {
         abrirConexion();
         PreparedStatement peticionanimals = null;
-
-        if(ordresanimales==0){
-            ordresanimales=1;
-        }else{
-            ordresanimales= comboordre.getSelectionModel().getSelectedIndex()+1;
+        nombreAnimal = comboordre.getSelectionModel().getSelectedItem().toString();
+        System.out.println("este en teoria es el contenido : "+ nombreAnimal);
+        for(int i =0; i<ordres.size(); i++){
+            if(ordres.get(i).getNom().contains(nombreAnimal)){
+                orden = ordres.get(i).getCodi();
+            }
         }
+
         try {
             peticionanimals = con.prepareStatement("SELECT * FROM animals WHERE ordre=?");
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        peticionanimals.setInt(1,ordresanimales);
+        peticionanimals.setInt(1,orden);
         resultat = peticionanimals.executeQuery();
+        animales.clear();
         while(resultat.next()){
             Animal animal = new Animal(resultat.getInt("codi"),resultat.getString("nom"),resultat.getInt("ordre"),resultat.getString("especie"),resultat.getString("descripcio"),resultat.getString("estat"),resultat.getString("imatge"));
             animales.add(animal);
         }
         numposicio=0;
-        datosAnimales();
         cerrarConexion();
     }
 
@@ -184,6 +209,7 @@ public class Controller {
         resultat = peticionestat.executeQuery();
         while(resultat.next()){
             itemsEstat.add(resultat.getString("estat"));
+            estats.add(resultat.getString("estat"));
         }
         comboestat.setItems(itemsEstat);
         comboestat.getSelectionModel().select(0);
@@ -200,11 +226,24 @@ public class Controller {
         Image image= new Image(url);
         imagen.setImage(image);
 
+        animal = animales.get(numposicio);
+
         String estadoAnimal = animales.get(numposicio).getEstat();
         for(int i = 0;i<comboestat.getItems().size();i++){
             if(comboestat.getItems().get(i).equals(estadoAnimal)){
                 comboestat.getSelectionModel().select(i);
             }
+        }
+    }
+
+    private void cambiarEstadoBoton(){
+        if(animales.size()==1){
+            btnanterior.setDisable(true);
+            btnsiguiente.setDisable(true);
+        }
+        if(animales.size()>1){
+            btnanterior.setDisable(true);
+            btnsiguiente.setDisable(false);
         }
     }
 
@@ -215,66 +254,60 @@ public class Controller {
         return urlfinal;
     }
 
-    private void cargarChoise(ResultSet resultat){
-        try {
-            choisefamilia.getItems().add(resultat.getString("nom"));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        choisefamilia.getSelectionModel().select(0);
-    }
-
-    @FXML
-    public void guardarCambios(Event event){
-    }
-
     @FXML
     public void buscarAnterior(Event event){
         numposicio= numposicio-(1);
-        if(numposicio<=0){
+        if(numposicio==0){
             btnanterior.setDisable(true);
+            datosAnimales();
         }else{
             btnsiguiente.setDisable(false);
-            textnom.setText(animales.get(numposicio).getNom());
-            textdescripcio.setText(animales.get(numposicio).getDescripcio());
-            textdescripcio.setWrapText(true);
-            textespecie.setText(animales.get(numposicio).getEspecie());
-            String url1 = animales.get(numposicio).getImatge();
-            String url = correctorUrl(url1);
-            Image image= new Image(url);
-            imagen.setImage(image);
-
-            String estadoAnimal = animales.get(numposicio).getEstat();
-            for(int i = 0;i<comboestat.getItems().size();i++){
-                if(comboestat.getItems().get(i).equals(estadoAnimal)){
-                    comboestat.getSelectionModel().select(i);
-                }
-            }
+            datosAnimales();
         }
     }
 
     @FXML
     public void buscarSiguiente(Event event){
         numposicio= numposicio+1;
-        if(numposicio==(animales.size()-1)){
+        if(numposicio==animales.size()-1){
             btnsiguiente.setDisable(true);
+            datosAnimales();
         }else{
             btnanterior.setDisable(false);
-            textnom.setText(animales.get(numposicio).getNom());
-            textdescripcio.setText(animales.get(numposicio).getDescripcio());
-            textdescripcio.setWrapText(true);
-            textespecie.setText(animales.get(numposicio).getEspecie());
-            String url1 = animales.get(numposicio).getImatge();
-            String url = correctorUrl(url1);
-            Image image= new Image(url);
-            imagen.setImage(image);
-
-            String estadoAnimal = animales.get(numposicio).getEstat();
-            for(int i = 0;i<comboestat.getItems().size();i++){
-                if(comboestat.getItems().get(i).equals(estadoAnimal)){
-                    comboestat.getSelectionModel().select(i);
-                }
-            }
+           datosAnimales();
         }
     }
+
+    @FXML
+    public void guardarCambios(Event event) throws SQLException {
+        abrirConexion();
+        PreparedStatement update = null;
+
+        try {
+            update = con.prepareStatement("UPDATE animals SET nom=?, especie=?,descripcio=?,estat=? WHERE codi=?");
+            String nom = textnom.getText();
+            update.setString(1,nom);
+            String especie = textespecie.getText();
+            update.setString(2,especie);
+            String descripcio = textdescripcio.getText();
+            update.setString(3,descripcio);
+            String estat = comboestat.getSelectionModel().getSelectedItem().toString();
+            update.setString(4,estat);
+            int codi = 0;
+            codi = animal.getCodi();
+            update.setInt(5,codi);
+            update.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        btnguardarcambios.setDisable(true);
+        cerrarConexion();
+
+    }
+
+    public void cambios(Event event ){
+        btnguardarcambios.setDisable(false);
+    }
+
 }

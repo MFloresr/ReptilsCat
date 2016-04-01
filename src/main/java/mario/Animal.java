@@ -32,10 +32,6 @@ public class Animal {
         return nom;
     }
 
-    public int getOrdre() {
-        return ordre;
-    }
-
     public String getEspecie() {
         return especie;
     }

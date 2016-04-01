@@ -3,6 +3,23 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 
+sourceSets {
+    main{
+        java{
+            srcDir 'src'
+        }
+        resources{
+            srcDir 'src'
+        }
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'Main'
+    }
+}
+
 sourceCompatibility = 1.8
 
 repositories {
@@ -12,4 +29,17 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
     compile 'mysql:mysql-connector-java:5.1.38'
+}
+
+
+compileJava.options.encoding = 'UTF-8'
+
+task uberjar(type: Jar, dependsOn: [':compileJava', ':processResources']) {
+    from files(sourceSets.main.output.classesDir)
+    from configurations.runtime.asFileTree.files.collect { zipTree(it) }
+    from sourceSets.main.allSource
+    classifier='sources'
+    manifest {
+        attributes 'Main-Class': 'mario.Main'
+    }
 }

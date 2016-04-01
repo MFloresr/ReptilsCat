@@ -4,9 +4,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -68,6 +66,7 @@ public class Controller {
                 @Override
                 public void changed(ObservableValue observable, Object oldValue, Object newValue) {
                     try {
+                        btnguardarcambios.setDisable(true);
                         buscarOrdre();
                     } catch (SQLException e) {
                         e.printStackTrace();
@@ -81,10 +80,11 @@ public class Controller {
                 public void changed(ObservableValue observable, Object oldValue, Object newValue) {
 
                     try {
-                        System.out.println("ordre: "+ comboordre.getSelectionModel().getSelectedIndex());
+
                         animalsDeCadaOrdre();
                         datosAnimales();
                         cambiarEstadoBoton();
+                        btnguardarcambios.setDisable(true);
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
@@ -135,7 +135,7 @@ public class Controller {
         resultat = peticionfamilia.executeQuery();
         while(resultat.next()){
             cargarChoise(resultat);
-            //System.out.println(resultat.getString("nom"));
+
         }
         cerrarConexion();
     }
@@ -149,7 +149,6 @@ public class Controller {
         abrirConexion();
         PreparedStatement peticionordre = null;
         catanimales= choisefamilia.getSelectionModel().getSelectedIndex()+1;
-        System.out.println( "familia que tendria que salir"+catanimales);
         try {
             peticionordre = con.prepareStatement("SELECT * FROM ordres WHERE familia=?");
         } catch (SQLException e) {
@@ -174,14 +173,16 @@ public class Controller {
     private void animalsDeCadaOrdre() throws SQLException {
         abrirConexion();
         PreparedStatement peticionanimals = null;
-        nombreAnimal = comboordre.getSelectionModel().getSelectedItem().toString();
-        System.out.println("este en teoria es el contenido : "+ nombreAnimal);
-        for(int i =0; i<ordres.size(); i++){
-            if(ordres.get(i).getNom().contains(nombreAnimal)){
-                orden = ordres.get(i).getCodi();
+        if (itemsOrdre.isEmpty()){
+
+        }else {
+            nombreAnimal = comboordre.getSelectionModel().getSelectedItem().toString();
+            for (int i = 0; i < ordres.size(); i++) {
+                if (ordres.get(i).getNom().contains(nombreAnimal)) {
+                    orden = ordres.get(i).getCodi();
+                }
             }
         }
-
         try {
             peticionanimals = con.prepareStatement("SELECT * FROM animals WHERE ordre=?");
         } catch (SQLException e) {
@@ -284,18 +285,16 @@ public class Controller {
         PreparedStatement update = null;
 
         try {
-            update = con.prepareStatement("UPDATE animals SET nom=?, especie=?,descripcio=?,estat=? WHERE codi=?");
+            update = con.prepareStatement("UPDATE animals SET nom=?, especie=?,descripcio=? WHERE codi=?");
             String nom = textnom.getText();
             update.setString(1,nom);
             String especie = textespecie.getText();
             update.setString(2,especie);
             String descripcio = textdescripcio.getText();
             update.setString(3,descripcio);
-            String estat = comboestat.getSelectionModel().getSelectedItem().toString();
-            update.setString(4,estat);
             int codi = 0;
             codi = animal.getCodi();
-            update.setInt(5,codi);
+            update.setInt(4,codi);
             update.executeUpdate();
 
         } catch (SQLException e) {
